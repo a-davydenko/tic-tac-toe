@@ -1,1 +1,6 @@
 rootProject.name = 'tic-tac-toe'
+
+include 'battle-service'
+include 'statistics-service'
+include 'user-service'
+include 'common'
