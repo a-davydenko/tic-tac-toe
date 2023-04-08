@@ -1,6 +1,5 @@
-package com.adavydenko.userservice;
+package com.adavydenko.tictactoe.userservice;
 
-import com.adavydenko.CommonConstants;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +15,7 @@ public class UserServiceApplication {
     }
 
     @GetMapping("/user-service")
-    public String sayHello(@RequestParam(value = "myName", defaultValue = CommonConstants.AUTHOR_NAME) String name) {
+    public String sayHello(@RequestParam(value = "myName", defaultValue = "a-davydenko") String name) {
         return String.format("User service started by %s", name);
     }
 

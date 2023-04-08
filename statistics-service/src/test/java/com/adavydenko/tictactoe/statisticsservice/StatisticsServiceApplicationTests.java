@@ -1,4 +1,4 @@
-package com.adavydenko.statisticsservice;
+package com.adavydenko.tictactoe.statisticsservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

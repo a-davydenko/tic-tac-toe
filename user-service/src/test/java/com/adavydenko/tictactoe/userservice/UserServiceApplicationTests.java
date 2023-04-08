@@ -1,10 +1,10 @@
-package com.adavydenko.battleservice;
+package com.adavydenko.tictactoe.userservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BattleServiceApplicationTests {
+class UserServiceApplicationTests {
 
     @Test
     void contextLoads() {

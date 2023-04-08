@@ -1,6 +1,5 @@
-package com.adavydenko.statisticsservice;
+package com.adavydenko.tictactoe.statisticsservice;
 
-import com.adavydenko.CommonConstants;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +15,7 @@ public class StatisticsServiceApplication {
     }
 
     @GetMapping("/statistics-service")
-    public String sayHello(@RequestParam(value = "myName", defaultValue = CommonConstants.AUTHOR_NAME) String name) {
+    public String sayHello(@RequestParam(value = "myName", defaultValue = "a-davydenko") String name) {
         return String.format("Statistics service started by %s", name);
     }
 
