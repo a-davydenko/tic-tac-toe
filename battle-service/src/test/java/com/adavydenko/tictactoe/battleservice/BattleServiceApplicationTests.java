@@ -1,10 +1,10 @@
-package com.adavydenko.tictactoe;
+package com.adavydenko.tictactoe.battleservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class TicTacToeApplicationTests {
+class BattleServiceApplicationTests {
 
     @Test
     void contextLoads() {
