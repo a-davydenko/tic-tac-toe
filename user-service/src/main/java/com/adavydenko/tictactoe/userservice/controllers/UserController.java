@@ -1,11 +1,11 @@
 package com.adavydenko.tictactoe.userservice.controllers;
 
 import com.adavydenko.tictactoe.userservice.dto.UserDTO;
-import com.adavydenko.tictactoe.userservice.dto.UserRegistrationDTO;
+import com.adavydenko.tictactoe.userservice.entities.User;
+import com.adavydenko.tictactoe.userservice.mappers.UserMapper;
 import com.adavydenko.tictactoe.userservice.services.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,38 +15,38 @@ import java.util.List;
 public class UserController {
 
     private UserService userService;
-
-    @PostMapping("/signup")
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserRegistrationDTO userRegistrationDTO) {
-        UserDTO savedUser = userService.createUser(userRegistrationDTO);
-        HttpStatus status = savedUser == null ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.CREATED;
-
-        return new ResponseEntity<>(savedUser, status);
-    }
+    private UserMapper userMapper;
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return new ResponseEntity<>(userService.getUsers(), HttpStatus.OK);
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userService.getUsers();
+
+        return users.stream().map(user -> userMapper.toDTO(user)).toList();
     }
 
     @GetMapping("/user")
-    public ResponseEntity<UserDTO> getUserById(@RequestParam String userId) {
-        UserDTO userDTO = userService.getUserById(userId);
+    @ResponseStatus(HttpStatus.OK)
+    public UserDTO getUserById(@RequestParam String userId) {
+        User user = userService.getUserById(userId);
 
-        return userDTO == null ?
-                new ResponseEntity<>(HttpStatus.NOT_FOUND) :
-                new ResponseEntity<>(userDTO, HttpStatus.OK);
+        return userMapper.toDTO(user);
     }
 
     @PutMapping("/user")
-    public ResponseEntity<UserDTO> updateUserById(@RequestBody UserDTO userDTO) {
-        return new ResponseEntity<>(userService.updateUserById(userDTO), HttpStatus.OK);
+    @ResponseStatus(HttpStatus.OK)
+    public UserDTO updateUserById(@RequestBody UserDTO userDTO) {
+        User user = userMapper.toEntity(userDTO);
+        User updatedUser = userService.updateUserById(user);
+
+        return userMapper.toDTO(updatedUser);
     }
 
     @DeleteMapping("/user")
-    public ResponseEntity<HttpStatus> deleteUserById(@RequestBody String userId) {
-        HttpStatus status = userService.deleteUserById(userId) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST;
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public boolean deleteUserById(@RequestBody String userId) {
+        boolean success = userService.deleteUserById(userId);
 
-        return new ResponseEntity<>(status);
+        return success;
     }
 }

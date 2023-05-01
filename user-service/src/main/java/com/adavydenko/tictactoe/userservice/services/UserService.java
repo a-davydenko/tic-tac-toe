@@ -1,19 +1,18 @@
 package com.adavydenko.tictactoe.userservice.services;
 
-import com.adavydenko.tictactoe.userservice.dto.UserDTO;
-import com.adavydenko.tictactoe.userservice.dto.UserRegistrationDTO;
+import com.adavydenko.tictactoe.userservice.entities.User;
 
 import java.util.List;
 
 public interface UserService {
 
-    UserDTO createUser(UserRegistrationDTO userRegistrationDTO);
+    User createUser(User user);
 
-    List<UserDTO> getUsers();
+    List<User> getUsers();
 
-    UserDTO getUserById(String userId);
+    User getUserById(String userId);
 
-    UserDTO updateUserById(UserDTO newUserDTO);
+    User updateUserById(User newUser);
 
     boolean deleteUserById(String userId);
 }
