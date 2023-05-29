@@ -4,14 +4,13 @@ import com.adavydenko.tictactoe.userservice.entities.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Getter
@@ -23,21 +22,22 @@ public class Battle {
     private String id;
     private BattleStatus status;
     @ManyToOne
-    private User playerOne; // player X
+    private User playerX;
     @ManyToOne
-    private User playerTwo; // player O
-    @OneToMany
-    private List<Step> steps;
+    private User playerO;
+    @OneToOne
+    private Grid grid;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     @ManyToOne
     private User winner;
 
-    public Battle(User playerOne) {
-        this.playerOne = playerOne;
+    public Battle(User playerX, Grid grid) {
+        this.playerX = playerX;
+        this.grid = grid;
     }
 
     public boolean addStep(Step step) {
-        return steps.add(step);
+        return grid.addStep(step);
     }
 }

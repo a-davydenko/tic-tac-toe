@@ -2,6 +2,7 @@ package com.adavydenko.tictactoe.battleservice.repositories;
 
 import com.adavydenko.tictactoe.battleservice.entities.Battle;
 import com.adavydenko.tictactoe.battleservice.entities.BattleStatus;
+import com.adavydenko.tictactoe.battleservice.entities.Step;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,4 +21,6 @@ public interface BattleRepository {
     Battle getBattleByBattleId(String battleId);
 
     Battle updateBattle(Battle battle);
+
+    Step saveStep(Step step);
 }

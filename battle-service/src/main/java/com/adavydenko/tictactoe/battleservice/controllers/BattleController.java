@@ -19,8 +19,8 @@ public class BattleController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Battle createBattle(@RequestBody String userId) {
-        return battleService.createBattle(userId);
+    public Battle createBattle(@RequestBody String userId, @RequestBody int gridSize, @RequestBody int winSize) {
+        return battleService.createBattle(userId, gridSize, winSize);
     }
 
     @GetMapping
@@ -49,8 +49,8 @@ public class BattleController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Battle makeStep(@RequestBody String battleId, @RequestBody String userId, @RequestBody Step step) {
-        return battleService.makeStep(battleId, userId, step);
+    public Step makeStep(@RequestBody String battleId, @RequestBody Step step) {
+        return battleService.makeStep(battleId, step);
     }
 
     @PutMapping

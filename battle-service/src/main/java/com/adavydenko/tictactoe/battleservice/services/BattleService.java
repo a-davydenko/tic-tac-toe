@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface BattleService {
 
-    Battle createBattle(String userId);
+    Battle createBattle(String userId, int gridSize, int winSize);
 
     Battle joinBattle(String battleId, String userId);
 
@@ -20,7 +20,7 @@ public interface BattleService {
 
     Battle getBattleByBattleId(String battleId);
 
-    Battle makeStep(String battleId, String userId, Step step);
+    Step makeStep(String battleId, Step step);
 
     Battle finishBattle(String battleId, String userId);
 }
