@@ -7,8 +7,10 @@ import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -31,7 +33,11 @@ public class Grid {
         this.winSize = winSize > 0 ? winSize : gridSize;
     }
 
-    public boolean addStep(Step step) {
+    public boolean addStep(@NonNull Step step) {
+        if (steps == null) {
+            steps = new ArrayList<>();
+        }
+
         return steps.add(step);
     }
 }
