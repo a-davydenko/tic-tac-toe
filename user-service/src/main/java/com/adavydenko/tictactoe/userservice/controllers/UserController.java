@@ -20,33 +20,33 @@ public class UserController {
     @GetMapping("/users")
     @ResponseStatus(HttpStatus.OK)
     public List<UserDTO> getAllUsers() {
-        List<User> users = userService.getUsers();
+        List<User> users = userService.findAll();
 
         return users.stream().map(user -> userMapper.toDTO(user)).toList();
     }
 
-    @GetMapping("/user")
+    @GetMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO getUserById(@RequestParam String userId) {
-        User user = userService.getUserById(userId);
+    public UserDTO getUserByUserId(@PathVariable String userId) {
+        User user = userService.findById(userId);
 
         return userMapper.toDTO(user);
     }
 
-    @PutMapping("/user")
+    @PutMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO updateUserById(@RequestBody UserDTO userDTO) {
+    public UserDTO updateUser(@PathVariable String userId, @RequestBody UserDTO userDTO) {
         User user = userMapper.toEntity(userDTO);
-        User updatedUser = userService.updateUserById(user);
+        User updatedUser = userService.updateUser(userId, user);
 
         return userMapper.toDTO(updatedUser);
     }
 
-    @DeleteMapping("/user")
+    @DeleteMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public boolean deleteUserById(@RequestBody String userId) {
-        boolean success = userService.deleteUserById(userId);
+    public boolean deleteUserByUserId(@PathVariable String userId) {
+        userService.deleteById(userId);
 
-        return success;
+        return true;
     }
 }
