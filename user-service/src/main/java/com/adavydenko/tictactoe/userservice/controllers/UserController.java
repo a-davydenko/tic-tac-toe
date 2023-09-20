@@ -1,6 +1,7 @@
 package com.adavydenko.tictactoe.userservice.controllers;
 
 import com.adavydenko.tictactoe.userservice.dto.UserDTO;
+import com.adavydenko.tictactoe.userservice.dto.UserRegistrationDTO;
 import com.adavydenko.tictactoe.userservice.entities.User;
 import com.adavydenko.tictactoe.userservice.mappers.UserMapper;
 import com.adavydenko.tictactoe.userservice.services.UserService;
@@ -27,7 +28,7 @@ public class UserController {
 
     @GetMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO getUserByUserId(@PathVariable String userId) {
+    public UserDTO getUserByUserId(@PathVariable Long userId) {
         User user = userService.findById(userId);
 
         return userMapper.toDTO(user);
@@ -35,7 +36,7 @@ public class UserController {
 
     @PutMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO updateUser(@PathVariable String userId, @RequestBody UserDTO userDTO) {
+    public UserDTO updateUser(@PathVariable Long userId, @RequestBody UserRegistrationDTO userDTO) {
         User user = userMapper.toEntity(userDTO);
         User updatedUser = userService.updateUser(userId, user);
 
@@ -44,7 +45,7 @@ public class UserController {
 
     @DeleteMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public boolean deleteUserByUserId(@PathVariable String userId) {
+    public boolean deleteUserByUserId(@PathVariable Long userId) {
         userService.deleteById(userId);
 
         return true;

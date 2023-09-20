@@ -27,13 +27,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findById(String userId) {
+    public User findById(Long userId) {
         return userRepository.findById(userId).get();
     }
 
     @Override
-    public User updateUser(String userId, User newUser) {
-        User oldUser = userRepository.findById(userId).get();
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public User updateUser(Long userId, User newUser) {
+        User oldUser = userRepository.findById(userId).orElse(null);
 
         if (oldUser != null) {
             oldUser.merge(newUser);
@@ -46,7 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteById(String userId) {
+    public void deleteById(Long userId) {
         userRepository.deleteById(userId);
     }
 }
