@@ -13,7 +13,7 @@ public abstract class UserMapper {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
-    @Mapping(target = "passwordHash", expression = "java(passwordEncoder.encode(userRegistrationDTO.getPassword()))")
+    @Mapping(target = "passwordHash", expression = "java(userRegistrationDTO.getPassword() != null ? passwordEncoder.encode(userRegistrationDTO.getPassword()) : null)")
     public abstract User toEntity(UserRegistrationDTO userRegistrationDTO);
 
     public abstract UserDTO toDTO(User user);

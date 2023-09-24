@@ -6,8 +6,17 @@ import com.adavydenko.tictactoe.userservice.entities.User;
 import com.adavydenko.tictactoe.userservice.mappers.UserMapper;
 import com.adavydenko.tictactoe.userservice.services.UserService;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -36,7 +45,8 @@ public class UserController {
 
     @PutMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO updateUser(@PathVariable Long userId, @RequestBody UserRegistrationDTO userDTO) {
+    public UserDTO updateUser(@PathVariable Long userId, @RequestBody UserRegistrationDTO userDTO, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+        currentUserValidation(userId, userDetails);
         User user = userMapper.toEntity(userDTO);
         User updatedUser = userService.updateUser(userId, user);
 
@@ -45,9 +55,20 @@ public class UserController {
 
     @DeleteMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public boolean deleteUserByUserId(@PathVariable Long userId) {
+    public boolean deleteUserByUserId(@PathVariable Long userId, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+        currentUserValidation(userId, userDetails);
         userService.deleteById(userId);
 
         return true;
+    }
+
+    private void currentUserValidation(Long userId, UserDetails userDetails) throws Exception {
+        User userFromDb = userService.findById(userId);
+
+        if (userFromDb == null) {
+            throw new Exception("User not found");
+        } else if (!StringUtils.equals(userFromDb.getUsername(), userDetails.getUsername())) {
+            throw new Exception("Not allowed");
+        }
     }
 }
