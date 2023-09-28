@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -27,7 +28,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findById(Long userId) {
+    public User findById(UUID userId) {
         return userRepository.findById(userId).orElse(null);
     }
 
@@ -37,7 +38,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(Long userId, User newUser) {
+    public User updateUser(UUID userId, User newUser) {
         User oldUser = userRepository.findById(userId).orElse(null);
 
         if (oldUser != null) {
@@ -51,7 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteById(Long userId) {
+    public void deleteById(UUID userId) {
         userRepository.deleteById(userId);
     }
 }

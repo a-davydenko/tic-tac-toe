@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
@@ -37,7 +38,7 @@ public class UserController {
 
     @GetMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO getUserByUserId(@PathVariable Long userId) {
+    public UserDTO getUserByUserId(@PathVariable UUID userId) {
         User user = userService.findById(userId);
 
         return userMapper.toDTO(user);
@@ -45,7 +46,7 @@ public class UserController {
 
     @PutMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDTO updateUser(@PathVariable Long userId, @RequestBody UserRegistrationDTO userDTO, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+    public UserDTO updateUser(@PathVariable UUID userId, @RequestBody UserRegistrationDTO userDTO, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
         currentUserValidation(userId, userDetails);
         User user = userMapper.toEntity(userDTO);
         User updatedUser = userService.updateUser(userId, user);
@@ -55,14 +56,14 @@ public class UserController {
 
     @DeleteMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public boolean deleteUserByUserId(@PathVariable Long userId, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+    public boolean deleteUserByUserId(@PathVariable UUID userId, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
         currentUserValidation(userId, userDetails);
         userService.deleteById(userId);
 
         return true;
     }
 
-    private void currentUserValidation(Long userId, UserDetails userDetails) throws Exception {
+    private void currentUserValidation(UUID userId, UserDetails userDetails) throws Exception {
         User userFromDb = userService.findById(userId);
 
         if (userFromDb == null) {
