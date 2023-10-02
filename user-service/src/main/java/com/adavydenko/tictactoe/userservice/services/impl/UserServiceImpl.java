@@ -6,6 +6,7 @@ import com.adavydenko.tictactoe.userservice.services.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
+        user.setLastSeenOnline(LocalDateTime.now());
         return userRepository.save(user);
     }
 
