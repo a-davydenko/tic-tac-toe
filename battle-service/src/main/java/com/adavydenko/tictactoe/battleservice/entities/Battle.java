@@ -10,7 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -19,7 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Battle {
     @Id
-    private String id;
+    private UUID id;
     private BattleStatus status;
     @ManyToOne
     private User playerX;

@@ -6,6 +6,7 @@ import com.adavydenko.tictactoe.battleservice.entities.Step;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface BattleRepository {
@@ -16,9 +17,9 @@ public interface BattleRepository {
 
     List<Battle> getBattlesByStatus(BattleStatus status);
 
-    List<Battle> getBattlesByUserId(String userId);
+    List<Battle> getBattlesByUserId(UUID userId);
 
-    Battle getBattleByBattleId(String battleId);
+    Battle getBattleByBattleId(UUID battleId);
 
     Battle updateBattle(Battle battle);
 

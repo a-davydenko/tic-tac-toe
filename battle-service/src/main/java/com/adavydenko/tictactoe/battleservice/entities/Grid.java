@@ -12,6 +12,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Setter
@@ -20,7 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 public class Grid {
     @Id
-    private String id;
+    private UUID id;
     @OneToOne
     private Battle battle;
     @OneToMany
