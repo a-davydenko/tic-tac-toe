@@ -1,15 +1,13 @@
 package com.adavydenko.tictactoe.userservice.dto;
 
-import lombok.*;
-
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
-public class UserDTO {
-    private String id;
+public class UserInDTO {
     private String username;
     private String email;
-    private LocalDateTime lastSeenOnline;
 }

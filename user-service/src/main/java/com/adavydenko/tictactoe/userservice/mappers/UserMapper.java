@@ -1,10 +1,15 @@
 package com.adavydenko.tictactoe.userservice.mappers;
 
-import com.adavydenko.tictactoe.userservice.dto.UserDTO;
+import com.adavydenko.tictactoe.userservice.dto.UserOutDTO;
+import com.adavydenko.tictactoe.userservice.dto.UserInDTO;
 import com.adavydenko.tictactoe.userservice.entities.User;
+import org.mapstruct.Mapper;
 
-public interface UserMapper {
-    User toEntity(UserDTO userDTO);
+@Mapper(componentModel = "spring")
+public
+interface UserMapper {
 
-    UserDTO toDTO(User user);
+    User toEntity(UserInDTO userInDTO);
+
+    UserOutDTO toDTO(User user);
 }

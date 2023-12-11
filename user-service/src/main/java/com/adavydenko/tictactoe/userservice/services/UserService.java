@@ -3,16 +3,19 @@ package com.adavydenko.tictactoe.userservice.services;
 import com.adavydenko.tictactoe.userservice.entities.User;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UserService {
 
     User createUser(User user);
 
-    List<User> getUsers();
+    List<User> findAll();
 
-    User getUserById(String userId);
+    User findById(UUID userId);
 
-    User updateUserById(User newUser);
+    User findByUsername(String username);
 
-    boolean deleteUserById(String userId);
+    User updateUser(UUID userId, User newUser);
+
+    void deleteById(UUID userId);
 }
