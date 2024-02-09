@@ -2,26 +2,20 @@ package com.adavydenko.tictactoe.battleservice.repositories;
 
 import com.adavydenko.tictactoe.battleservice.entities.Battle;
 import com.adavydenko.tictactoe.battleservice.entities.BattleStatus;
-import com.adavydenko.tictactoe.battleservice.entities.Step;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface BattleRepository {
+public interface BattleRepository extends CrudRepository<Battle, UUID> {
 
-    Battle saveBattle(Battle battle);
+    List<Battle> findAllByStatus(BattleStatus status);
 
-    List<Battle> getAllBattles();
+    @Query(value = "select * from battle b where b.player_x_id = ?1 or b.player_o_id = ?1", nativeQuery = true)
+    List<Battle> findAllByUserId(UUID userId);
 
-    List<Battle> getBattlesByStatus(BattleStatus status);
-
-    List<Battle> getBattlesByUserId(UUID userId);
-
-    Battle getBattleByBattleId(UUID battleId);
-
-    Battle updateBattle(Battle battle);
-
-    Step saveStep(Step step);
+//    Step saveStep(Step step);
 }

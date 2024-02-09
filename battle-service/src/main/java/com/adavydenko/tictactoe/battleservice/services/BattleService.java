@@ -13,15 +13,15 @@ public interface BattleService {
 
     Battle joinBattle(UUID battleId, UUID userId);
 
-    List<Battle> getAllBattles();
+    List<Battle> findBattles();
 
-    List<Battle> getBattlesByStatus(BattleStatus status);
+    List<Battle> findBattlesByStatus(BattleStatus status);
 
-    List<Battle> getBattlesByUserId(UUID userId);
+    List<Battle> findBattlesByUserId(UUID userId);
 
-    Battle getBattleByBattleId(UUID battleId);
+    Battle findBattleByBattleId(UUID battleId);
 
-    Step makeStep(UUID battleId, Step step);
+    Step makeStep(UUID battleId, UUID userId, int x, int y);
 
-    Battle finishBattle(UUID battleId, UUID userId);
+    Battle surrender(UUID battleId, UUID userId);
 }
