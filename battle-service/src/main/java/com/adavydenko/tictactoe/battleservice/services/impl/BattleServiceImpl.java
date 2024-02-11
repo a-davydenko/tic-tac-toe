@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -95,7 +96,9 @@ public class BattleServiceImpl implements BattleService {
         validateStep(step, battle);
 
         battle.addStep(step);
-        // todo check if battle is finished
+        if (isBattleFinished(battle)) {
+            finishBattle(battle, player);
+        }
 
         return stepRepository.save(step);
     }
@@ -106,17 +109,12 @@ public class BattleServiceImpl implements BattleService {
         validateBattle(battleId, battle, BattleStatus.IN_PROGRESS);
 
         if (battle.getPlayerX().getId().equals(userId)) {
-            battle.setWinner(battle.getPlayerO());
+            return finishBattle(battle, battle.getPlayerO());
         } else if (battle.getPlayerO().getId().equals(userId)) {
-            battle.setWinner(battle.getPlayerX());
+            return finishBattle(battle, battle.getPlayerX());
         } else {
             throw new IllegalArgumentException("User with id " + userId + " is not a player in this battle.");
         }
-
-        battle.setEndDateTime(LocalDateTime.now());
-        battle.setStatus(BattleStatus.FINISHED);
-
-        return battleRepository.save(battle);
     }
 
     private void validateBattle(UUID battleId, Battle battle, BattleStatus expectedStatus) {
@@ -139,7 +137,7 @@ public class BattleServiceImpl implements BattleService {
         if (player == null) {
             throw new IllegalArgumentException("User with id " + userId + " is not found.");
         }
-        if (battle.getPlayerX() == player){
+        if (battle.getPlayerX() == player) {
             throw new IllegalArgumentException("Player [" + userId + "] has already joined this battle.");
         }
     }
@@ -170,5 +168,50 @@ public class BattleServiceImpl implements BattleService {
         if (steps.stream().anyMatch(s -> s.getX() == x && s.getY() == y)) {
             throw new IllegalArgumentException(String.format("Cell (%d, %d) is occupied", x, y));
         }
+    }
+
+    private boolean isBattleFinished(Battle battle) {
+        Grid grid = battle.getGrid();
+        int winSize = grid.getWinSize();
+        List<Step> steps = grid.getSteps();
+
+        if (steps.size() < winSize * 2 - 1) return false;
+
+        User currentPlayer = steps.get(steps.size() - 1).getPlayer();
+        List<Step> currentPlayerSteps = steps.stream().filter(step -> step.getPlayer().equals(currentPlayer))
+                .collect(Collectors.toCollection(ArrayList::new));
+        sortSteps(currentPlayerSteps);
+        for (Step step : currentPlayerSteps) {
+            if (calculateNOfStepsInRow(step, currentPlayerSteps, 1, 0) >= winSize) return true;
+            if (calculateNOfStepsInRow(step, currentPlayerSteps, 0, 1) >= winSize) return true;
+            if (calculateNOfStepsInRow(step, currentPlayerSteps, 1, 1) >= winSize) return true;
+            if (calculateNOfStepsInRow(step, currentPlayerSteps, -1, 1) >= winSize) return true;
+        }
+
+        return false;
+    }
+
+    protected void sortSteps(List<Step> steps) {
+        steps.sort((step1, step2) -> step1.getX() == step2.getX() ?
+                step1.getY() - step2.getY() : step1.getX() - step2.getX());
+    }
+
+    protected int calculateNOfStepsInRow(Step currentStep, List<Step> steps, int x, int y) {
+        Step nextStep = steps.stream()
+                .filter(step -> step.getX() == currentStep.getX() + x && step.getY() == currentStep.getY() + y)
+                .findFirst().orElse(null);
+
+        if (nextStep == null) {
+            return 1;
+        } else {
+            return calculateNOfStepsInRow(nextStep, steps, x, y) + 1;
+        }
+    }
+
+    private Battle finishBattle(Battle battle, User winner) {
+        battle.setWinner(winner);
+        battle.setEndDateTime(LocalDateTime.now());
+        battle.setStatus(BattleStatus.FINISHED);
+        return battleRepository.save(battle);
     }
 }
