@@ -45,18 +45,12 @@ public class BattleServiceImpl implements BattleService {
     @Override
     public Battle joinBattle(UUID battleId, UUID userId) {
         Battle battle = battleRepository.findById(battleId).orElse(null);
-        // todo add check if battle is available to join
+        validateBattle(battleId, battle, BattleStatus.NEW);
 
-        if (battle == null) {
-            throw new IllegalArgumentException("Battle [" + battleId + "] is not found.");
-        }
+        User player = userService.findById(userId);
+        validatePlayerCanJoin(userId, player, battle);
 
-        User user = userService.findById(userId);
-        if (user == null) {
-            throw new IllegalArgumentException("User with id " + userId + " is not found.");
-        }
-
-        battle.setPlayerO(user);
+        battle.setPlayerO(player);
         battle.setStatus(BattleStatus.IN_PROGRESS);
         battle.setStartDateTime(LocalDateTime.now());
         battleRepository.save(battle);
@@ -87,18 +81,21 @@ public class BattleServiceImpl implements BattleService {
     @Override
     public Step makeStep(UUID battleId, UUID userId, int x, int y) {
         Battle battle = battleRepository.findById(battleId).orElse(null);
-        validateBattle(battleId, battle);
+        validateBattle(battleId, battle, BattleStatus.IN_PROGRESS);
 
         User player = userService.findById(userId);
+        validatePlayerCanMakeStep(userId, player, battle);
+
         Step step = new Step();
         step.setBattle(battle);
         step.setPlayer(player);
         step.setX(x);
         step.setY(y);
-
-        // todo add step validation
+        step.setStepDateTime(LocalDateTime.now());
+        validateStep(step, battle);
 
         battle.addStep(step);
+        // todo check if battle is finished
 
         return stepRepository.save(step);
     }
@@ -106,7 +103,7 @@ public class BattleServiceImpl implements BattleService {
     @Override
     public Battle surrender(UUID battleId, UUID userId) {
         Battle battle = battleRepository.findById(battleId).orElse(null);
-        validateBattle(battleId, battle);
+        validateBattle(battleId, battle, BattleStatus.IN_PROGRESS);
 
         if (battle.getPlayerX().getId().equals(userId)) {
             battle.setWinner(battle.getPlayerO());
@@ -122,13 +119,56 @@ public class BattleServiceImpl implements BattleService {
         return battleRepository.save(battle);
     }
 
-    private void validateBattle(UUID battleId, Battle battle) {
+    private void validateBattle(UUID battleId, Battle battle, BattleStatus expectedStatus) {
         if (battle == null) {
             throw new IllegalArgumentException("Battle [" + battleId + "] is not found.");
         }
+        if (battle.getStatus() != expectedStatus) {
+            throw new IllegalArgumentException(String.format("Battle [%s] has status %s, but expected %s",
+                    battleId, battle.getStatus().toString(), expectedStatus.toString()));
+        }
+        if (battle.getStatus() == BattleStatus.NEW && battle.getPlayerX() == null) {
+            throw new IllegalArgumentException("There is no player X in battle [" + battleId + "]");
+        }
+        if (battle.getStatus() == BattleStatus.IN_PROGRESS && (battle.getPlayerX() == null || battle.getPlayerO() == null)) {
+            throw new IllegalArgumentException("There is no player X or player O in battle [" + battleId + "]");
+        }
+    }
 
-        if (battle.getPlayerX() == null || battle.getPlayerO() == null) {
-            throw new IllegalArgumentException("Battle [" + battleId + "] is not valid.");
+    private void validatePlayerCanJoin(UUID userId, User player, Battle battle) {
+        if (player == null) {
+            throw new IllegalArgumentException("User with id " + userId + " is not found.");
+        }
+        if (battle.getPlayerX() == player){
+            throw new IllegalArgumentException("Player [" + userId + "] has already joined this battle.");
+        }
+    }
+
+    private void validatePlayerCanMakeStep(UUID userId, User player, Battle battle) {
+        if (player == null) {
+            throw new IllegalArgumentException("User with id " + userId + " is not found.");
+        }
+        if (battle.getPlayerX() != player && battle.getPlayerO() != player) {
+            throw new IllegalArgumentException("User with id " + userId + " is not a player in this battle.");
+        }
+        List<Step> steps = battle.getGrid().getSteps();
+        Step lastStep = steps.size() > 0 ? steps.get(steps.size() - 1) : null;
+        if (lastStep != null && lastStep.getPlayer() == player) {
+            throw new IllegalArgumentException("Another user should make a step");
+        }
+    }
+
+    private void validateStep(Step step, Battle battle) {
+        Grid grid = battle.getGrid();
+        int x = step.getX();
+        int y = step.getY();
+        if (x > grid.getSize() || x <= 0 || y > grid.getSize() || y <= 0) {
+            throw new IllegalArgumentException(String.format("Step (%d, %d) is out of grid", x, y));
+        }
+
+        List<Step> steps = grid.getSteps();
+        if (steps.stream().anyMatch(s -> s.getX() == x && s.getY() == y)) {
+            throw new IllegalArgumentException(String.format("Cell (%d, %d) is occupied", x, y));
         }
     }
 }
