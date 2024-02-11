@@ -4,7 +4,6 @@ import com.adavydenko.tictactoe.battleservice.dto.CreateBattleDTO;
 import com.adavydenko.tictactoe.battleservice.dto.StepDTO;
 import com.adavydenko.tictactoe.battleservice.entities.Battle;
 import com.adavydenko.tictactoe.battleservice.entities.BattleStatus;
-import com.adavydenko.tictactoe.battleservice.entities.Step;
 import com.adavydenko.tictactoe.battleservice.services.BattleService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -63,7 +62,7 @@ public class BattleController {
 
     @PutMapping("/battle/{battleId}")
     @ResponseStatus(HttpStatus.OK)
-    public Step makeStep(@PathVariable UUID battleId, @RequestBody StepDTO stepDTO) {
+    public Battle makeStep(@PathVariable UUID battleId, @RequestBody StepDTO stepDTO) {
         return battleService.makeStep(battleId, stepDTO.getPlayerId(), stepDTO.getX(), stepDTO.getY());
     }
 

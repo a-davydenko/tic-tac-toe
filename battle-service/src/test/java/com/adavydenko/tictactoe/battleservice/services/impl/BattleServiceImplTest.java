@@ -2,8 +2,6 @@ package com.adavydenko.tictactoe.battleservice.services.impl;
 
 import com.adavydenko.tictactoe.battleservice.entities.Step;
 import com.adavydenko.tictactoe.battleservice.repositories.BattleRepository;
-import com.adavydenko.tictactoe.battleservice.repositories.GridRepository;
-import com.adavydenko.tictactoe.battleservice.repositories.StepRepository;
 import com.adavydenko.tictactoe.userservice.services.UserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,10 +21,6 @@ class BattleServiceImplTest {
     UserService userService;
     @Mock
     BattleRepository battleRepository;
-    @Mock
-    GridRepository gridRepository;
-    @Mock
-    StepRepository stepRepository;
 
     @InjectMocks
     BattleServiceImpl battleService;

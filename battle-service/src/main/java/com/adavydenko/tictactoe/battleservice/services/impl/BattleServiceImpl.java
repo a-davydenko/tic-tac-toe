@@ -2,10 +2,8 @@ package com.adavydenko.tictactoe.battleservice.services.impl;
 
 import com.adavydenko.tictactoe.battleservice.entities.Battle;
 import com.adavydenko.tictactoe.battleservice.entities.BattleStatus;
-import com.adavydenko.tictactoe.battleservice.entities.Grid;
 import com.adavydenko.tictactoe.battleservice.entities.Step;
 import com.adavydenko.tictactoe.battleservice.repositories.BattleRepository;
-import com.adavydenko.tictactoe.battleservice.repositories.GridRepository;
 import com.adavydenko.tictactoe.battleservice.repositories.StepRepository;
 import com.adavydenko.tictactoe.battleservice.services.BattleService;
 import com.adavydenko.tictactoe.userservice.entities.User;
@@ -26,7 +24,6 @@ public class BattleServiceImpl implements BattleService {
 
     private UserService userService;
     private BattleRepository battleRepository;
-    private GridRepository gridRepository;
     private StepRepository stepRepository;
 
     @Override
@@ -35,9 +32,11 @@ public class BattleServiceImpl implements BattleService {
         if (user == null) {
             throw new IllegalArgumentException("User with id " + userId + " is not found.");
         }
+        if (winSize > gridSize) {
+            throw new IllegalArgumentException("Win size can't be more than grid size.");
+        }
 
-        Grid grid = gridRepository.save(new Grid(gridSize, winSize));
-        Battle battle = new Battle(user, grid);
+        Battle battle = new Battle(user, gridSize, winSize);
         battleRepository.save(battle);
 
         return battle;
@@ -80,7 +79,7 @@ public class BattleServiceImpl implements BattleService {
     }
 
     @Override
-    public Step makeStep(UUID battleId, UUID userId, int x, int y) {
+    public Battle makeStep(UUID battleId, UUID userId, int x, int y) {
         Battle battle = battleRepository.findById(battleId).orElse(null);
         validateBattle(battleId, battle, BattleStatus.IN_PROGRESS);
 
@@ -95,12 +94,14 @@ public class BattleServiceImpl implements BattleService {
         step.setStepDateTime(LocalDateTime.now());
         validateStep(step, battle);
 
-        battle.addStep(step);
+        Step savedStep = stepRepository.save(step);
+
+        battle.addStep(savedStep);
         if (isBattleFinished(battle)) {
             finishBattle(battle, player);
         }
 
-        return stepRepository.save(step);
+        return battle;
     }
 
     @Override
@@ -149,7 +150,7 @@ public class BattleServiceImpl implements BattleService {
         if (battle.getPlayerX() != player && battle.getPlayerO() != player) {
             throw new IllegalArgumentException("User with id " + userId + " is not a player in this battle.");
         }
-        List<Step> steps = battle.getGrid().getSteps();
+        List<Step> steps = battle.getSteps();
         Step lastStep = steps.size() > 0 ? steps.get(steps.size() - 1) : null;
         if (lastStep != null && lastStep.getPlayer() == player) {
             throw new IllegalArgumentException("Another user should make a step");
@@ -157,23 +158,21 @@ public class BattleServiceImpl implements BattleService {
     }
 
     private void validateStep(Step step, Battle battle) {
-        Grid grid = battle.getGrid();
         int x = step.getX();
         int y = step.getY();
-        if (x > grid.getSize() || x <= 0 || y > grid.getSize() || y <= 0) {
+        if (x > battle.getSize() || x <= 0 || y > battle.getSize() || y <= 0) {
             throw new IllegalArgumentException(String.format("Step (%d, %d) is out of grid", x, y));
         }
 
-        List<Step> steps = grid.getSteps();
+        List<Step> steps = battle.getSteps();
         if (steps.stream().anyMatch(s -> s.getX() == x && s.getY() == y)) {
             throw new IllegalArgumentException(String.format("Cell (%d, %d) is occupied", x, y));
         }
     }
 
     private boolean isBattleFinished(Battle battle) {
-        Grid grid = battle.getGrid();
-        int winSize = grid.getWinSize();
-        List<Step> steps = grid.getSteps();
+        int winSize = battle.getWinSize();
+        List<Step> steps = battle.getSteps();
 
         if (steps.size() < winSize * 2 - 1) return false;
 

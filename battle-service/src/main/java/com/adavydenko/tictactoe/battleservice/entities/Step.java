@@ -4,7 +4,9 @@ import com.adavydenko.tictactoe.userservice.entities.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,7 +28,8 @@ public class Step {
     @Column(name = "STEP_ID")
     private UUID id;
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "battle_id")
     private Battle battle;
     @ManyToOne
     private User player;

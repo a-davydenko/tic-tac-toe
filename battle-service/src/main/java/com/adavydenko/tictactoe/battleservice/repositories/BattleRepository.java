@@ -16,6 +16,4 @@ public interface BattleRepository extends CrudRepository<Battle, UUID> {
 
     @Query(value = "select * from battle b where b.player_x_id = ?1 or b.player_o_id = ?1", nativeQuery = true)
     List<Battle> findAllByUserId(UUID userId);
-
-//    Step saveStep(Step step);
 }
