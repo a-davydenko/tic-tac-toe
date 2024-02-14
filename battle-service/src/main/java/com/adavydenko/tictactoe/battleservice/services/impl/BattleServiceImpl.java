@@ -37,9 +37,8 @@ public class BattleServiceImpl implements BattleService {
         }
 
         Battle battle = new Battle(user, gridSize, winSize);
-        battleRepository.save(battle);
 
-        return battle;
+        return battleRepository.save(battle);
     }
 
     @Override
@@ -92,7 +91,7 @@ public class BattleServiceImpl implements BattleService {
         step.setX(x);
         step.setY(y);
         step.setStepDateTime(LocalDateTime.now());
-        validateStep(step, battle);
+        validateStep(step);
 
         Step savedStep = stepRepository.save(step);
 
@@ -157,9 +156,10 @@ public class BattleServiceImpl implements BattleService {
         }
     }
 
-    private void validateStep(Step step, Battle battle) {
+    private void validateStep(Step step) {
         int x = step.getX();
         int y = step.getY();
+        Battle battle = step.getBattle();
         if (x > battle.getSize() || x <= 0 || y > battle.getSize() || y <= 0) {
             throw new IllegalArgumentException(String.format("Step (%d, %d) is out of grid", x, y));
         }
