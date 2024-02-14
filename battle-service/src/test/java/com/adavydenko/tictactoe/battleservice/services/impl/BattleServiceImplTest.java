@@ -120,13 +120,8 @@ class BattleServiceImplTest {
     @Test
     void joinBattle_userNotFound_test() {
         UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
         UUID battleId = UUID.randomUUID();
-        Battle battle = new Battle();
-        battle.setId(battleId);
-        battle.setStatus(BattleStatus.NEW);
-        battle.setPlayerX(user);
+        Battle battle = new Battle(battleId, BattleStatus.NEW, new User(), null, null, 3, 3, null, null, null);
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
         Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(null);
 
@@ -142,10 +137,7 @@ class BattleServiceImplTest {
         UUID newPlayerId = UUID.randomUUID();
         User playerX = new User();
         UUID battleId = UUID.randomUUID();
-        Battle battle = new Battle();
-        battle.setId(battleId);
-        battle.setStatus(BattleStatus.NEW);
-        battle.setPlayerX(playerX);
+        Battle battle = new Battle(battleId, BattleStatus.NEW, playerX, null, null, 3, 3, null, null, null);
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
         Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerX);
 
@@ -162,16 +154,14 @@ class BattleServiceImplTest {
         User playerO = new User();
         User playerX = new User();
         UUID battleId = UUID.randomUUID();
-        Battle battle = new Battle();
-        battle.setId(battleId);
-        battle.setStatus(BattleStatus.NEW);
-        battle.setPlayerX(playerX);
+        Battle battle = new Battle(battleId, BattleStatus.NEW, playerX, null, null, 3, 3, null, null, null);
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
         Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
 
         Battle updatedBattle = battleService.joinBattle(battleId, newPlayerId);
 
         Assertions.assertEquals(updatedBattle.getStatus(), BattleStatus.IN_PROGRESS);
+        Assertions.assertEquals(updatedBattle.getPlayerO(), playerO);
         Mockito.verify(battleRepository, Mockito.times(1)).findById(Mockito.any(UUID.class));
         Mockito.verify(userService, Mockito.times(1)).findById(Mockito.any(UUID.class));
         Mockito.verifyNoMoreInteractions(userService);
@@ -384,7 +374,7 @@ class BattleServiceImplTest {
         battle.addStep(step);
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
         Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
-        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 1, 1 , null));
+        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 1, 1, null));
 
         battleService.makeStep(battleId, playerOId, 1, 1);
 
@@ -406,14 +396,13 @@ class BattleServiceImplTest {
         playerO.setId(playerOId);
         UUID battleId = UUID.randomUUID();
         Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
-        Step step = new Step(UUID.randomUUID(), battle, playerX, 2, 1, null);
-        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 1, 1 , null));
-        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 2, 1 , null));
-        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 2, 2 , null));
-        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 3, 3 , null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 1, 1, null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 2, 1, null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 2, 2, null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 3, 3, null));
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
         Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
-        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 1, 3 , null));
+        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 1, 3, null));
 
         battleService.makeStep(battleId, playerOId, 1, 3);
 
@@ -436,13 +425,13 @@ class BattleServiceImplTest {
         UUID battleId = UUID.randomUUID();
         Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
         new Step(UUID.randomUUID(), battle, playerX, 2, 1, null);
-        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 1, 1 , null));
-        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 2, 1 , null));
-        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 2, 2 , null));
-        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 3, 1 , null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 1, 1, null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 2, 1, null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 2, 2, null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 3, 1, null));
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
         Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
-        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 3, 3 , null));
+        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 3, 3, null));
 
         Battle updatedBattle = battleService.makeStep(battleId, playerOId, 3, 3);
 
@@ -506,11 +495,7 @@ class BattleServiceImplTest {
         User playerO = new User();
         playerO.setId(playerOId);
         UUID battleId = UUID.randomUUID();
-        Battle battle = new Battle();
-        battle.setId(battleId);
-        battle.setStatus(BattleStatus.IN_PROGRESS);
-        battle.setPlayerX(playerX);
-        battle.setPlayerO(playerO);
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.surrender(battleId, userId));
@@ -527,11 +512,7 @@ class BattleServiceImplTest {
         User playerO = new User();
         playerO.setId(playerOId);
         UUID battleId = UUID.randomUUID();
-        Battle battle = new Battle();
-        battle.setId(battleId);
-        battle.setStatus(BattleStatus.IN_PROGRESS);
-        battle.setPlayerX(playerX);
-        battle.setPlayerO(playerO);
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
         Mockito.when(battleRepository.save(Mockito.any(Battle.class))).thenReturn(battle);
 
@@ -553,11 +534,7 @@ class BattleServiceImplTest {
         User playerO = new User();
         playerO.setId(playerOId);
         UUID battleId = UUID.randomUUID();
-        Battle battle = new Battle();
-        battle.setId(battleId);
-        battle.setStatus(BattleStatus.IN_PROGRESS);
-        battle.setPlayerX(playerX);
-        battle.setPlayerO(playerO);
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
         Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
         Mockito.when(battleRepository.save(Mockito.any(Battle.class))).thenReturn(battle);
 
