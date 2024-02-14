@@ -4,6 +4,7 @@ import com.adavydenko.tictactoe.battleservice.entities.Battle;
 import com.adavydenko.tictactoe.battleservice.entities.BattleStatus;
 import com.adavydenko.tictactoe.battleservice.entities.Step;
 import com.adavydenko.tictactoe.battleservice.repositories.BattleRepository;
+import com.adavydenko.tictactoe.battleservice.repositories.StepRepository;
 import com.adavydenko.tictactoe.userservice.entities.User;
 import com.adavydenko.tictactoe.userservice.services.UserService;
 import org.junit.jupiter.api.Assertions;
@@ -26,6 +27,8 @@ class BattleServiceImplTest {
     UserService userService;
     @Mock
     BattleRepository battleRepository;
+    @Mock
+    StepRepository stepRepository;
 
     @InjectMocks
     BattleServiceImpl battleService;
@@ -168,7 +171,7 @@ class BattleServiceImplTest {
 
         Battle updatedBattle = battleService.joinBattle(battleId, newPlayerId);
 
-        Assertions.assertEquals(updatedBattle, battle);
+        Assertions.assertEquals(updatedBattle.getStatus(), BattleStatus.IN_PROGRESS);
         Mockito.verify(battleRepository, Mockito.times(1)).findById(Mockito.any(UUID.class));
         Mockito.verify(userService, Mockito.times(1)).findById(Mockito.any(UUID.class));
         Mockito.verifyNoMoreInteractions(userService);
@@ -211,6 +214,246 @@ class BattleServiceImplTest {
 
         Assertions.assertNull(battle);
         Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+    }
+
+    @Test
+    void makeStep_battleNotFound_test() {
+        UUID battleId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.makeStep(battleId, userId, 1, 1));
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verifyNoInteractions(userService, stepRepository);
+    }
+
+    @Test
+    void makeStep_battleHasUnexpectedStatus_test() {
+        UUID battleId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.FINISHED, null, null, null, 3, 3, null, null, null);
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.makeStep(battleId, userId, 1, 1));
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verifyNoInteractions(userService, stepRepository);
+    }
+
+    @Test
+    void makeStep_battleWithoutPlayers_test() {
+        UUID userId = UUID.randomUUID();
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, null, null, null, 3, 3, null, null, null);
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.makeStep(battleId, userId, 1, 1));
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verifyNoInteractions(userService, stepRepository);
+    }
+
+    @Test
+    void makeStep_userNotFound_test() {
+        UUID userId = UUID.randomUUID();
+        UUID playerXId = UUID.randomUUID();
+        User playerX = new User();
+        playerX.setId(playerXId);
+        UUID playerOId = UUID.randomUUID();
+        User playerO = new User();
+        playerO.setId(playerOId);
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+        Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(null);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.makeStep(battleId, userId, 1, 1));
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verify(userService, Mockito.times(1)).findById(userId);
+        Mockito.verifyNoMoreInteractions(userService);
+        Mockito.verifyNoInteractions(stepRepository);
+    }
+
+    @Test
+    void makeStep_userIsNotPlayerOfBattle_test() {
+        UUID userId = UUID.randomUUID();
+        UUID playerXId = UUID.randomUUID();
+        User playerX = new User();
+        playerX.setId(playerXId);
+        UUID playerOId = UUID.randomUUID();
+        User playerO = new User();
+        playerO.setId(playerOId);
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+        Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(new User());
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.makeStep(battleId, userId, 1, 1));
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verify(userService, Mockito.times(1)).findById(userId);
+        Mockito.verifyNoMoreInteractions(userService);
+        Mockito.verifyNoInteractions(stepRepository);
+    }
+
+    @Test
+    void makeStep_anotherPlayerShouldMakeStep_test() {
+        UUID playerXId = UUID.randomUUID();
+        User playerX = new User();
+        playerX.setId(playerXId);
+        UUID playerOId = UUID.randomUUID();
+        User playerO = new User();
+        playerO.setId(playerOId);
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
+        Step step = new Step();
+        step.setPlayer(playerX);
+        battle.addStep(step);
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+        Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerX);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.makeStep(battleId, playerXId, 1, 1));
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verify(userService, Mockito.times(1)).findById(playerXId);
+        Mockito.verifyNoMoreInteractions(userService);
+        Mockito.verifyNoInteractions(stepRepository);
+    }
+
+    @Test
+    void makeStep_stepOutOfGrid_test() {
+        UUID playerXId = UUID.randomUUID();
+        User playerX = new User();
+        playerX.setId(playerXId);
+        UUID playerOId = UUID.randomUUID();
+        User playerO = new User();
+        playerO.setId(playerOId);
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
+        Step step = new Step();
+        step.setPlayer(playerX);
+        battle.addStep(step);
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+        Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.makeStep(battleId, playerOId, 0, 0));
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verify(userService, Mockito.times(1)).findById(playerOId);
+        Mockito.verifyNoMoreInteractions(userService);
+        Mockito.verifyNoInteractions(stepRepository);
+    }
+
+    @Test
+    void makeStep_cellIsOccupied_test() {
+        UUID playerXId = UUID.randomUUID();
+        User playerX = new User();
+        playerX.setId(playerXId);
+        UUID playerOId = UUID.randomUUID();
+        User playerO = new User();
+        playerO.setId(playerOId);
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
+        Step step = new Step(UUID.randomUUID(), battle, playerX, 1, 1, null);
+        battle.addStep(step);
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+        Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> battleService.makeStep(battleId, playerOId, 1, 1));
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verify(userService, Mockito.times(1)).findById(playerOId);
+        Mockito.verifyNoMoreInteractions(userService);
+        Mockito.verifyNoInteractions(stepRepository);
+    }
+
+    @Test
+    void makeStep_battleIsNotFinished_notEnoughSteps_test() {
+        UUID playerXId = UUID.randomUUID();
+        User playerX = new User();
+        playerX.setId(playerXId);
+        UUID playerOId = UUID.randomUUID();
+        User playerO = new User();
+        playerO.setId(playerOId);
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
+        Step step = new Step(UUID.randomUUID(), battle, playerX, 2, 1, null);
+        battle.addStep(step);
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+        Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
+        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 1, 1 , null));
+
+        battleService.makeStep(battleId, playerOId, 1, 1);
+
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verify(userService, Mockito.times(1)).findById(playerOId);
+        Mockito.verifyNoMoreInteractions(userService);
+        Mockito.verify(stepRepository, Mockito.times(1)).save(Mockito.any(Step.class));
+        Mockito.verifyNoMoreInteractions(stepRepository);
+    }
+
+    @Test
+    void makeStep_battleIsNotFinished_test() {
+        UUID playerXId = UUID.randomUUID();
+        User playerX = new User();
+        playerX.setId(playerXId);
+        UUID playerOId = UUID.randomUUID();
+        User playerO = new User();
+        playerO.setId(playerOId);
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
+        Step step = new Step(UUID.randomUUID(), battle, playerX, 2, 1, null);
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 1, 1 , null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 2, 1 , null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 2, 2 , null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 3, 3 , null));
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+        Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
+        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 1, 3 , null));
+
+        battleService.makeStep(battleId, playerOId, 1, 3);
+
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verifyNoMoreInteractions(battleRepository);
+        Mockito.verify(userService, Mockito.times(1)).findById(playerOId);
+        Mockito.verifyNoMoreInteractions(userService);
+        Mockito.verify(stepRepository, Mockito.times(1)).save(Mockito.any(Step.class));
+        Mockito.verifyNoMoreInteractions(stepRepository);
+    }
+
+    @Test
+    void makeStep_battleIsFinished_test() {
+        UUID playerXId = UUID.randomUUID();
+        User playerX = new User();
+        playerX.setId(playerXId);
+        UUID playerOId = UUID.randomUUID();
+        User playerO = new User();
+        playerO.setId(playerOId);
+        UUID battleId = UUID.randomUUID();
+        Battle battle = new Battle(battleId, BattleStatus.IN_PROGRESS, playerX, playerO, null, 3, 3, null, null, null);
+        new Step(UUID.randomUUID(), battle, playerX, 2, 1, null);
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 1, 1 , null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 2, 1 , null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerO, 2, 2 , null));
+        battle.addStep(new Step(UUID.randomUUID(), battle, playerX, 3, 1 , null));
+        Mockito.when(battleRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(battle));
+        Mockito.when(userService.findById(Mockito.any(UUID.class))).thenReturn(playerO);
+        Mockito.when(stepRepository.save(Mockito.any(Step.class))).thenReturn(new Step(UUID.randomUUID(), battle, playerO, 3, 3 , null));
+
+        Battle updatedBattle = battleService.makeStep(battleId, playerOId, 3, 3);
+
+        Assertions.assertEquals(updatedBattle.getStatus(), BattleStatus.FINISHED);
+        Assertions.assertEquals(updatedBattle.getWinner(), playerO);
+        Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
+        Mockito.verify(userService, Mockito.times(1)).findById(playerOId);
+        Mockito.verifyNoMoreInteractions(userService);
+        Mockito.verify(stepRepository, Mockito.times(1)).save(Mockito.any(Step.class));
+        Mockito.verifyNoMoreInteractions(stepRepository);
+        Mockito.verify(battleRepository, Mockito.times(1)).save(battle);
         Mockito.verifyNoMoreInteractions(battleRepository);
     }
 
@@ -294,7 +537,7 @@ class BattleServiceImplTest {
 
         Battle updatedBattle = battleService.surrender(battleId, playerXId);
 
-        Assertions.assertEquals(updatedBattle, battle);
+        Assertions.assertEquals(updatedBattle.getStatus(), BattleStatus.FINISHED);
         Assertions.assertEquals(updatedBattle.getWinner(), playerO);
         Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
         Mockito.verify(battleRepository, Mockito.times(1)).save(battle);
@@ -320,7 +563,7 @@ class BattleServiceImplTest {
 
         Battle updatedBattle = battleService.surrender(battleId, playerOId);
 
-        Assertions.assertEquals(updatedBattle, battle);
+        Assertions.assertEquals(updatedBattle.getStatus(), BattleStatus.FINISHED);
         Assertions.assertEquals(updatedBattle.getWinner(), playerX);
         Mockito.verify(battleRepository, Mockito.times(1)).findById(battleId);
         Mockito.verify(battleRepository, Mockito.times(1)).save(battle);
