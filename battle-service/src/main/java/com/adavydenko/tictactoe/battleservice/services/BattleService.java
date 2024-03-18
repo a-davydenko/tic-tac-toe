@@ -2,25 +2,25 @@ package com.adavydenko.tictactoe.battleservice.services;
 
 import com.adavydenko.tictactoe.battleservice.entities.Battle;
 import com.adavydenko.tictactoe.battleservice.entities.BattleStatus;
-import com.adavydenko.tictactoe.battleservice.entities.Step;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface BattleService {
 
-    Battle createBattle(String userId, int gridSize, int winSize);
+    Battle createBattle(UUID userId, int gridSize, int winSize);
 
-    Battle joinBattle(String battleId, String userId);
+    Battle joinBattle(UUID battleId, UUID userId);
 
-    List<Battle> getAllBattles();
+    List<Battle> findBattles();
 
-    List<Battle> getBattlesByStatus(BattleStatus status);
+    List<Battle> findBattlesByStatus(BattleStatus status);
 
-    List<Battle> getBattlesByUserId(String userId);
+    List<Battle> findBattlesByUserId(UUID userId);
 
-    Battle getBattleByBattleId(String battleId);
+    Battle findBattleByBattleId(UUID battleId);
 
-    Step makeStep(String battleId, Step step);
+    Battle makeStep(UUID battleId, UUID userId, int x, int y);
 
-    Battle finishBattle(String battleId, String userId);
+    Battle surrender(UUID battleId, UUID userId);
 }
